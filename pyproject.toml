@@ -1,0 +1,15 @@
+[project]
+name = "WebServer"
+version = "0.0.1"
+description = "project for python task"
+
+[tool.poetry]
+authors = ["Alex Spirin"]
+
+[tool.poetry.dependencies]
+python = ">=3.12"
+mypy = "^1.15.0"
+flake8 = "^7.2.0"
+pre-commit = "^4.2.0"
+black = "^25.1.0"
+isort = "^6.0.1"

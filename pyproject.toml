@@ -13,3 +13,12 @@ flake8 = "^7.2.0"
 pre-commit = "^4.2.0"
 black = "^25.1.0"
 isort = "^6.0.1"
+
+[tool.black]
+line-length = 120
+target-version = ['py313']
+skip-string-normalization = true
+
+[tool.isort]
+profile = "hug"
+src_paths = ["isort", "test"]

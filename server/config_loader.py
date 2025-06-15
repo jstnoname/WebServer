@@ -1,9 +1,9 @@
 ﻿import json
-import os
+import pathlib
 
 from loguru import logger
 
-from .constants import DEFAULT_LOG_CONFIG
+from .model import Config
 
 
 class Configurator:
@@ -11,49 +11,46 @@ class Configurator:
     find and configurate webserver and logs
     """
 
-    def __init__(self):
+    def __init__(self) -> None:
         """
         find config file in project directory and configurate logs
         """
-        self.config_path = self.find_config()
-        self.config = self.parse_config()
-        self.configurate_logs()
+        self._config_path = self._find_config()
+        self._config = self._parse_config()
+        self._configurate_logs()
 
     @staticmethod
-    def find_config() -> str:
+    def _find_config() -> str:
         """
         find config.json file in project root directory
-        :return:
+        :return: path to config file
         """
-        directory = os.path.dirname(__file__)[:-6]
+        directory = pathlib.Path(__file__).parent.parent
 
-        for filename in os.listdir(directory):
-            if filename.endswith("config.json"):
-                path = os.path.join(directory, filename)
-                logger.info(f"Found config file, path: {path}")
-                return path
+        for filename in directory.glob('*config.json'):
+            logger.info(f"Found config file, path: {filename}")
+            return str(filename)
 
         raise FileNotFoundError(
-            "Configuration file was not found. Create or move config.json file in project root directory."
+            "Configuration file was not found. Create or move configurate file in project root directory"
         )
 
-    def parse_config(self) -> dict:
+    def _parse_config(self) -> Config:
         """
         parse config.json
         :return:
         """
-        if self.config_path is not None and os.path.exists(self.config_path):
-            with open(self.config_path, "r") as file:
-                config = json.load(file)
-                if type(config) is dict:
-                    logger.info(f"Load config file, path: {self.config_path}")
-                    return config
-                raise TypeError("config.json should be a dict.")
+        if self._config_path is not None and pathlib.Path(self._config_path).exists():
+            with open(self._config_path, "r") as file:
+                config_dict = json.load(file)
+                config = Config(**config_dict)
+                logger.info(f"Config loaded from {self._config_path}")
+                return config
         raise FileNotFoundError(
-            "Configuration file was not found. Create or move config.json file in project root directory."
+            "Configuration file was not found. Create or move configurate file in project root directory"
         )
 
-    def configurate_logs(self) -> None:
+    def _configurate_logs(self) -> None:
         """
         configurate logging
 
@@ -62,26 +59,17 @@ class Configurator:
         if logs config was not determined, configuration will be standard
         :return:
         """
-        try:
-            logger.configure(**self.config["log"])
-            logger.info("Logger configured from server config")
-            return
-        except KeyError:
-            logger.info("Logger config not found")
-        except TypeError as exception:
-            logger.error(f"Logger config wrong: {exception}")
-        except Exception as exception:
-            logger.error(f"Fatal error: {exception}")
+        logger.configure(**self._config.log_config)
+        if "log_config" not in self._config.model_fields_set:
+            logger.info("Logger configured from default configuration")
+        else:
+            logger.info("Logger configured from server configuration")
 
-        logger.configure(**DEFAULT_LOG_CONFIG)
-
-        logger.info("Standard logger configuration")
-
-    def get_servers_config(self) -> list:
+    def get_servers_config(self) -> list[Config.ServerConfig]:
         """
         get servers configuration
         :return:
         """
-        if "servers" in self.config and type(self.config["servers"]) is list:
-            return self.config["servers"]
-        raise KeyError("servers config was not found.")
+        if self._config.servers:
+            return self._config.servers
+        raise KeyError("Servers config not found")

@@ -1,10 +1,11 @@
 ﻿import asyncio
-import os.path
 from asyncio import StreamReader, StreamWriter
+from http import HTTPStatus
 
 from loguru import logger
 
 from .http_response import HTTPResponse
+from .model import Config, Response
 
 
 class Server:
@@ -12,46 +13,16 @@ class Server:
     create and manage webserver
     """
 
-    def __init__(self, config: dict) -> None:
+    def __init__(self, config: Config.ServerConfig) -> None:
         """
         init and configurate server
         :param config: server configuration
         """
-        self.config = config
-        self.check_config()
-        self.set_default_config()
-        logger.info(f"{self.config['server_name']}:{self.config['listen']} configurate")
-
-    def check_config(self) -> None:
-        """
-        check, that all important attributes are set, overwise throw exception
-        :return:
-        """
-        if type(self.config) is not dict:
-            raise TypeError("Server config should be a dict")
-
-        if not self.config.get("listen"):
-            raise KeyError("Server configuration must include \"listen\" attribute")
-
-        if not self.config.get("server_name"):
-            raise KeyError("Server configuration must include \"server_name\" attribute")
-
-    def set_default_config(self) -> None:
-        """
-        set default attributes, if they don't exist
-        :return:
-        """
-        if not self.config.get("timeout"):
-            self.config["timeout"] = 5
-
-        if self.config.get("proxy_pass"):
-            return
-
-        if not self.config.get("root"):
-            self.config["root"] = os.path.dirname(__file__)[:-6]
+        self._config = config
+        logger.info(f"{self._config.server_name}:{self._config.listen} configurate")
 
     @logger.catch
-    async def server_callback(self, reader: StreamReader, writer: StreamWriter) -> None:
+    async def _server_callback(self, reader: StreamReader, writer: StreamWriter) -> None:
         """
         get user request and write response
         :param reader: reader user request
@@ -59,17 +30,18 @@ class Server:
         :return:
         """
         while True:
+            data = bytes(0)
             try:
-                data = await asyncio.wait_for(reader.read(1024), timeout=self.config["timeout"])
+                data = await asyncio.wait_for(reader.read(1024), timeout=self._config.timeout)
             except asyncio.TimeoutError:
-                logger.info(f"Server {self.config['server_name']}:{self.config['listen']} timed out")
+                logger.info(f"Server {self._config.server_name}:{self._config.listen} timed out")
                 break
 
             if not data:
                 break
 
             request = data.decode("utf-8")
-            parsed_request = await self.parse_request(request)
+            parsed_request = await self._parse_request(request)
 
             if parsed_request:
                 peername = writer.get_extra_info("peername")
@@ -79,7 +51,7 @@ class Server:
                     f"{parsed_request.get('user-agent')}"
                 )
 
-            response = await self.write_response(parsed_request)
+            response = await self._write_response(parsed_request)
 
             writer.write(response)
             await writer.drain()
@@ -94,44 +66,55 @@ class Server:
         await writer.wait_closed()
 
     @logger.catch
-    async def write_response(self, parsed_request: dict[str, str] | None = None) -> bytes:
+    async def _write_response(self, parsed_request: dict[str, str] | None = None) -> bytes:
         """
         create response from parsed request
         :param parsed_request: request from user
         :return:
         """
-        response = HTTPResponse(self.config)
+        http_response = HTTPResponse(self._config)
 
         if parsed_request is None:
             logger.info(f"400 : bad request on {parsed_request}")
-            return await response.build_response(400, {}, b"400 Bad Request")
+            response = Response(
+                status=HTTPStatus.BAD_REQUEST, headers={"Content-Type": "text/plain"}, body=b"400 Bad Request"
+            )
+            return await http_response.build_response(response)
 
         if parsed_request["method"] not in ("GET", "HEAD"):
             logger.info(f"405 : Request method {parsed_request['method']} not allowed")
-            return await response.build_response(405, {"Content-Type": "text/plain"}, b"405 Method Not Allowed")
+            response = Response(
+                status=HTTPStatus.METHOD_NOT_ALLOWED,
+                headers={"Content-Type": "text/plain"},
+                body=b"405 Method Not Allowed",
+            )
+            return await http_response.build_response(response)
 
-        if self.config.get("proxy_pass"):
-            status_code, headers, body = await response.handle_proxy_pass(parsed_request)
-        elif self.config.get("return"):
-            status_code, headers, body = await response.handle_return()
-        elif self.config.get("autoindex"):
-            status_code, headers, body = await response.generate_autoindex(parsed_request["path"])
+        if self._config.proxy_pass:
+            response = await http_response.handle_proxy_pass(parsed_request)
+        elif self._config.return_path:
+            response = await http_response.handle_return()
+        elif self._config.autoindex:
+            response = await http_response.generate_autoindex(parsed_request["path"])
         else:
-            code, local_path = await response.get_local_path(parsed_request["path"])
+            code, local_path = await http_response.get_local_path(parsed_request["path"])
             if code == 200:
-                status_code, headers, body = await response.load_file(local_path)
+                response = await http_response.load_file(local_path)
             else:
-                status_code, headers, body = 404, {}, b"404 Not Found"
+                response = Response(
+                    status=HTTPStatus.NOT_FOUND, headers={"Content-Type": "text/plain"}, body=b"404 Not Found"
+                )
 
         logger.info(
             f"{parsed_request['host']}  |  Response  |  "
             f"{parsed_request['method']} {parsed_request['path']} {parsed_request['protocol']}  |  "
-            f"{status_code}"
+            f"{response.status}"
         )
 
         if parsed_request["method"] == "HEAD":
-            return await response.build_response(status_code, headers, b"")
-        return await response.build_response(status_code, headers, body)
+            response.body = b''
+            return await http_response.build_response(response)
+        return await http_response.build_response(response)
 
     @logger.catch
     async def start(self) -> None:
@@ -140,17 +123,17 @@ class Server:
         :return:
         """
         server = await asyncio.start_server(
-            client_connected_cb=self.server_callback, host=self.config["server_name"], port=self.config["listen"]
+            client_connected_cb=self._server_callback, host=self._config.server_name, port=self._config.listen
         )
 
-        logger.info(f"{self.config['server_name']} started and listening on {self.config['listen']}")
+        logger.info(f"{self._config.server_name} started and listening on {self._config.listen}")
 
         async with server:
             await server.serve_forever()
 
     @staticmethod
     @logger.catch
-    async def parse_request(request: str) -> dict[str, str] | None:
+    async def _parse_request(request: str) -> dict[str, str] | None:
         """
         turn request from string to dict
         :param request: str
@@ -168,4 +151,5 @@ class Server:
 
             return result
         except Exception:
+            logger.exception(f"Error on parsing request {request}")
             return None

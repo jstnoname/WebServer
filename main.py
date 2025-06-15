@@ -1,10 +1,9 @@
-﻿import asyncio
-import os
+﻿import os
 
 import server
 
 
-def remove_log():
+def remove_log() -> None:
     """
     remove files with .log extension
     lazy remove logs on each start
@@ -20,4 +19,4 @@ def remove_log():
 
 if __name__ == "__main__":
     remove_log()
-    asyncio.run(server.run_all())
+    server.run_all()

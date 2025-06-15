@@ -1,17 +1,5 @@
 ﻿from typing import Any
 
-STATUS_CODES = {
-    200: "OK",
-    301: "Moved Permanently",
-    302: "Found",
-    400: "Bad Request",
-    403: "Forbidden",
-    404: "Not Found",
-    405: "Method Not Allowed",
-    500: "Internal Server Error",
-    502: "Bad Gateway",
-}
-
 DEFAULT_LOG_CONFIG: dict[Any, Any] = {
     "handlers": [
         {
@@ -24,3 +12,19 @@ DEFAULT_LOG_CONFIG: dict[Any, Any] = {
         }
     ]
 }
+
+
+AUTOINDEX_TEMPLATE = """
+<!DOCTYPE html>
+<html>
+<head><title>Index of {}</title></head>
+<body>
+    <h1>
+        Index of {}
+    </h1>
+    <ul>
+        {}
+    </ul>
+</body>
+</html>
+"""

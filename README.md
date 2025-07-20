@@ -19,10 +19,8 @@ cd PythonTaskWebServer
 ```
 
 ### Install Requirements
-
-```bash
-pip install -r requirements.txt
-```
+To install dependencies run ``poetry install`` in terminal.<br>
+If you don't have poetry at first install it via ``pip install poetry``
 
 ### Creating Configuration of Webservers
 

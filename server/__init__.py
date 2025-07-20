@@ -9,7 +9,7 @@ from .server import Server
 @logger.catch
 def run_all() -> None:
     """
-    start all processes
+    run async servers
     :return:
     """
     asyncio.run(_run_servers())
@@ -18,7 +18,7 @@ def run_all() -> None:
 @logger.catch
 async def _run_servers() -> None:
     """
-    run all servers
+    configure and run all servers
     :return:
     """
     configurator = Configurator()

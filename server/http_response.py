@@ -2,7 +2,6 @@
 import pathlib
 from collections import OrderedDict
 from http import HTTPStatus
-from typing import Tuple
 
 from aiohttp import ClientSession, ClientTimeout
 from loguru import logger
@@ -174,7 +173,7 @@ class HTTPResponse:
             return response
 
     @logger.catch
-    async def get_local_path(self, server_path: str) -> Tuple[HTTPStatus, str]:
+    async def get_local_path(self, server_path: str) -> tuple[HTTPStatus, str]:
         """
         get correct path on local machine from server request
         :param server_path: path of current directory from server

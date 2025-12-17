@@ -64,4 +64,3 @@ python main.py
 ---
 ## Testing Project
 To run tests write ``python -m unittest discover tests``
-

@@ -1,6 +1,6 @@
 ﻿import pathlib
 from http import HTTPStatus
-from typing import Any, Optional
+from typing import Any
 
 from pydantic import BaseModel, Field, field_validator
 
@@ -17,8 +17,8 @@ class Config(BaseModel):
         timeout: int = 5
         cache: bool = False
         max_cache_size: int = 0
-        proxy_pass: Optional[str] = None
-        return_path: Optional[str] = Field(default=None, alias='return')
+        proxy_pass: str | None = None
+        return_path: str | None = Field(default=None, alias='return')
 
         @classmethod
         @field_validator('listen', mode='before')

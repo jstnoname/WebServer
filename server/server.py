@@ -150,6 +150,6 @@ class Server:
                     result[split_line[0].strip().lower()] = split_line[1].strip()
 
             return result
-        except Exception:
-            logger.exception(f"Error on parsing request {request}")
+        except Exception as e:
+            logger.exception(f"Error on parsing request {request}: exception {e}")
             return None

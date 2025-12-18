@@ -175,3 +175,8 @@ cython_debug/
 
 # Pycharm ignore
 .idea
+
+# ---
+
+config.json
+static/

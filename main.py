@@ -1,2 +1,4 @@
-﻿if __name__ == "__main__":
-    pass
+﻿import server
+
+if __name__ == "__main__":
+    server.run_all()

@@ -5,10 +5,6 @@
 This **WebServer** is a simplified version of [nginx](https://nginx.org), implemented in Python.
 
 ---
-## Author
-**Александр Спирин ФТ-104**
-
----
 ## Downloading and Start Project
 
 ### Download project

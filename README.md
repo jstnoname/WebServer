@@ -10,8 +10,8 @@ This **WebServer** is a simplified version of [nginx](https://nginx.org), implem
 ### Download project
 
 ```bash
-git clone https://github.com/jstnoname/PythonTaskWebServer.git
-cd PythonTaskWebServer
+git clone https://github.com/jstnoname/WebServer.git
+cd WebServer
 ```
 
 ### Install Requirements

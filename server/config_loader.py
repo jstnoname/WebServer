@@ -3,7 +3,7 @@ import pathlib
 
 from loguru import logger
 
-from .model import Config
+from model import Config
 
 
 class Configurator:

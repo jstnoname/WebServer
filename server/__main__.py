@@ -2,8 +2,8 @@
 
 from loguru import logger
 
-from .config_loader import Configurator
-from .server import Server
+from config_loader import Configurator
+from server import Server
 
 
 @logger.catch
@@ -34,3 +34,7 @@ async def _run_servers() -> None:
         tasks.append(asyncio.create_task(new_server.start()))
 
     await asyncio.gather(*tasks)
+
+
+if __name__ == "__main__":
+    run_all()

@@ -4,8 +4,8 @@ from http import HTTPStatus
 
 from loguru import logger
 
-from .http_response import HTTPResponse
-from .model import Config, Response
+from http_response import HTTPResponse
+from model import Config, Response
 
 
 class Server:

@@ -4,7 +4,7 @@ from typing import Any
 
 from pydantic import BaseModel, Field, field_validator
 
-from .constants import DEFAULT_LOG_CONFIG
+from constants import DEFAULT_LOG_CONFIG
 
 
 class Config(BaseModel):

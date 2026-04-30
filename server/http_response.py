@@ -6,8 +6,8 @@ from http import HTTPStatus
 from aiohttp import ClientSession, ClientTimeout
 from loguru import logger
 
-from .constants import AUTOINDEX_TEMPLATE
-from .model import Config, Response
+from constants import AUTOINDEX_TEMPLATE
+from model import Config, Response
 
 
 class HTTPResponse:

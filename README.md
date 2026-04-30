@@ -31,7 +31,7 @@ Create file that will end with ``config.json`` in project root directory. For ex
                 "listen" <- string or int of server port
                 "timeout" <- string or int of server timeout. That need to keep-alive or proxy using
                 "server_name" <- server address
-                "root" : "C:\\Users\\Alexander\\PycharmProjects\\PythonTaskWebServer\\static" <- root of server
+                "root" : "C:\\....\\static" <- string-path of server root folder
                 "autoindex" <- bool. If true create autoindex
                 "cache" <- bool. Creating cache of recent loaded files
                 "max_cache_size" <- int | byte. Max size of files cache
@@ -54,7 +54,7 @@ same server config
 ### Start Server
 For start server run ``main.py`` or write
 ```bash
-python main.py
+python server
 ```
 
 ---
